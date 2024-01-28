@@ -16,7 +16,7 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
-
+  intl:
   calander:
     # When depending on this package from a real application you should use:
     #   calander: ^x.y.z

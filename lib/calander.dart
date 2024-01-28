@@ -1,13 +1,29 @@
 import 'package:flutter/material.dart';
 
+
+typedef OnDaySelect = void Function(DateTime selectDay);
+
 class Calander extends StatefulWidget {
   
-  // User Parameters.
+  /* User Parameters.
+    year,
+    Focused Date,
+    Focused Date highlight color,
+    MonthStyle,
+    DayStyle,
+    DateStyle,
+    onDaySelect func.
+  */
+  
   final DateTime focusedDate;
+  final int year;
+  final OnDaySelect? onDaySelect;
 
   const Calander({
     super.key,
-    required this.focusedDate
+    required this.focusedDate,
+    required this.year,
+    this.onDaySelect
   });
 
   @override
@@ -32,7 +48,12 @@ class _CalanderState extends State<Calander> {
              // Month Wise Calander View;
              return Column(
                 children: [
-                    MonthlyCalView(focusedDate: widget.focusedDate, month: index),
+                    MonthlyCalView(
+                        focusedDate: widget.focusedDate,
+                        month: index, 
+                        year: widget.year,
+                        onDaySelect: widget.onDaySelect,
+                    ),
                     const SizedBox(height: 50,)
                 ]);
           }
@@ -47,22 +68,23 @@ class MonthlyCalView extends StatelessWidget {
     super.key,
     required this.focusedDate,
     required this.month,
+    required this.year,
+    this.onDaySelect
   });
     
   // final List<int> monthDayCount;
   final DateTime focusedDate;
   final int month;
+  final int year;
+  final OnDaySelect? onDaySelect;
 
   @override
   Widget build(BuildContext context) {
-    
-    int curYear = focusedDate.year;
-    
     // Total days in a month
     List<int> monthDayCount; 
-    if(curYear%400==0){
+    if(year%400==0){
         monthDayCount = [31,29,31,30,31,30,31,31,30,31,30,31];
-    }else if(curYear%4==0 && curYear%100!=0){
+    }else if(year%4==0 && year%100!=0){
         monthDayCount = [31,29,31,30,31,30,31,31,30,31,30,31];
     }else{
         monthDayCount = [31,28,31,30,31,30,31,31,30,31,30,31];
@@ -75,7 +97,7 @@ class MonthlyCalView extends StatelessWidget {
     List<String> monthDesc = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
     
     // Weekday for 1st of the month.
-    var startDay = DateTime(curYear, month+1, 1).weekday;
+    var startDay = DateTime(year, month+1, 1).weekday;
     
     return Container(
       padding: const EdgeInsets.only(left: 30),
@@ -83,7 +105,7 @@ class MonthlyCalView extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
               Text(
-                monthDesc[month] + " " + curYear.toString(),
+                monthDesc[month] + " " + year.toString(),
                 style: const TextStyle(
                     fontSize: 24,
                     fontWeight: FontWeight.bold
@@ -102,21 +124,32 @@ class MonthlyCalView extends StatelessWidget {
                       }else if(ind - 6 < startDay){
                         return const Text("");
                       }else{
-                        String date = (ind - 5 - startDay).toString();
+                        DateTime date = DateTime(year, month + 1, (ind - 5 - startDay));
                         
-                        if(date == focusedDate.day.toString() && (month+1) == focusedDate.month){
-                           return Text(
-                                date,
-                                style: TextStyle(
-                                    background: Paint()
-                                    ..style = PaintingStyle.stroke
-                                    ..color = Colors.red
-                                    ..strokeJoin = StrokeJoin.round
-                                    ..strokeWidth = 18
-                                ),
-                            );
+                        if(date.day.toString() == focusedDate.day.toString() && (month+1) == focusedDate.month && year == focusedDate.year){
+                           return GestureDetector(
+                             child: Text(
+                                  (date.day).toString(),
+                                  style: TextStyle(
+                                      color: Colors.white,  
+                                      background: Paint()
+                                      ..style = PaintingStyle.stroke
+                                      ..color = Colors.black
+                                      ..strokeJoin = StrokeJoin.round
+                                      ..strokeWidth = 18
+                                  ),
+                              ),
+                              onTap: (){
+                                onDaySelect?.call(date);
+                              },
+                           );
                         } else {
-                          return Text(date);
+                          return GestureDetector(
+                            onTap: (){
+                                onDaySelect?.call(date);
+                            },
+                            child: Text((date.day).toString())
+                          );
                         }
                       }
                   })
